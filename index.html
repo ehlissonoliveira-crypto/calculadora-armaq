@@ -864,6 +864,17 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
   <main class="shell-container" style="padding-top: 0.5rem; padding-bottom: 2rem;">
 
+    <!-- BANNER DE ERRO VISÍVEL FIRESTORE -->
+    <div id="error-alert-banner" style="display: none; background: #fef2f2; border: 1px solid #fca5a5; border-left: 5px solid #dc2626; border-radius: 8px; padding: 0.85rem 1.15rem; margin-top: 1rem; margin-bottom: 0.5rem; color: #991b1b; font-size: 0.875rem; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
+        <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+          <span style="font-size: 1.15rem; line-height: 1;">⚠️</span>
+          <div id="error-alert-content" style="font-weight: 500; line-height: 1.45;"></div>
+        </div>
+        <button type="button" onclick="closeErrorBanner()" style="background: none; border: none; color: #991b1b; font-size: 1.1rem; cursor: pointer; padding: 0 4px; font-weight: bold;" title="Fechar aviso">✕</button>
+      </div>
+    </div>
+
     <!-- PAINEL DE DIAGNÓSTICO DO SISTEMA -->
     <div class="diag-card" id="diag-panel">
       <div class="diag-info">
@@ -886,6 +897,10 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         <button type="button" class="btn btn-outline" style="font-size: 0.785rem; padding: 0.35rem 0.65rem;" onclick="downloadSampleCSV()">
           📄 Baixar planilha de exemplo
         </button>
+      </div>
+      <div class="diag-error-row" style="width: 100%; font-size: 0.8rem; color: #475569; padding-top: 0.5rem; border-top: 1px dashed #e2e8f0; display: flex; align-items: baseline; gap: 0.45rem; flex-wrap: wrap;">
+        <strong style="color: #334155;">Último erro:</strong>
+        <span id="diag-last-error-text" style="color: #166534; font-weight: 600;">nenhum</span>
       </div>
     </div>
 
@@ -1351,8 +1366,8 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         </div>
 
         <div id="table-empty-state" class="empty-state" style="display: none;">
-          <p style="margin: 0; font-weight: 600;">Carregando produtos cadastrados...</p>
-          <small style="color: #94a3b8;">Mostrando 0 a 0 de 0 produtos</small>
+          <p style="margin: 0; font-weight: 600; color: #475569;">Nenhum produto cadastrado ainda</p>
+          <small style="color: #94a3b8;">Cadastre um produto na aba "Cadastro &amp; Cálculo" ou importe via planilha.</small>
         </div>
       </div>
     </section>
@@ -1625,14 +1640,74 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       return num.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
     };
 
-    const showToast = (msg, duration = 3000) => {
+    const showToast = (msg, duration = 3500, isError = false) => {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
+      if (isError) {
+        toast.style.background = '#991b1b';
+        toast.style.border = '1px solid #f87171';
+        toast.style.color = '#ffffff';
+      } else {
+        toast.style.background = '#1e293b';
+        toast.style.border = 'none';
+        toast.style.color = '#ffffff';
+      }
       toast.style.display = 'block';
-      setTimeout(() => {
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
         toast.style.display = 'none';
       }, duration);
     };
+
+    function showErrorBanner(message) {
+      const banner = document.getElementById('error-alert-banner');
+      const content = document.getElementById('error-alert-content');
+      if (banner && content) {
+        content.textContent = message;
+        banner.style.display = 'block';
+      }
+    }
+
+    function closeErrorBanner() {
+      const banner = document.getElementById('error-alert-banner');
+      if (banner) banner.style.display = 'none';
+    }
+
+    /* FORMATADOR E INTERPRETADOR DE ERROS FIRESTORE REST API */
+    function formatDetailedFirestoreError(status, errJson) {
+      const errObj = errJson?.error || {};
+      const errStatus = errObj.status || (typeof errObj === 'string' ? errObj : '');
+      const errMsg = errObj.message || errJson?.message || '';
+      const fullText = `${status} ${errStatus} ${errMsg}`.toUpperCase();
+
+      let friendlyMessage = '';
+      if (status === 404 || fullText.includes('NOT_FOUND') || fullText.includes('DATABASE NOT FOUND') || fullText.includes('DATABASE DOES NOT EXIST')) {
+        friendlyMessage = '❌ Banco de dados Firestore não encontrado. Verifique se você criou o Firestore Database no console do Firebase (Build → Firestore Database → Criar banco de dados).';
+      } else if (status === 403 || fullText.includes('PERMISSION_DENIED') || fullText.includes('MISSING OR INSUFFICIENT PERMISSIONS')) {
+        friendlyMessage = '❌ Permissão negada. Vá no console do Firebase → Firestore Database → Regras e permita leitura/escrita (modo de teste: allow read, write: if true).';
+      } else if (status === 400 && (fullText.includes('API KEY NOT VALID') || fullText.includes('API_TARGET_SERVICE') || fullText.includes('KEYINVALID') || fullText.includes('API KEY EXPIRED'))) {
+        friendlyMessage = '❌ Chave de API inválida ou restrita. Verifique a apiKey no console do Firebase (Configurações do projeto → Seus apps).';
+      } else {
+        friendlyMessage = `❌ Erro Firestore [HTTP ${status || 'Rede'}${errStatus ? ' / ' + errStatus : ''}]: ${errMsg || 'Falha na comunicação com o servidor'}`;
+      }
+
+      const technicalDetail = `HTTP ${status}${errStatus ? ' (' + errStatus + ')' : ''}: ${errMsg || 'Sem detalhe adicional'}`;
+      return { friendlyMessage, technicalDetail, status, errStatus, errMsg };
+    }
+
+    function setLastError(errDetails) {
+      const lastErrEl = document.getElementById('diag-last-error-text');
+      if (!lastErrEl) return;
+      if (!errDetails) {
+        lastErrEl.textContent = 'nenhum';
+        lastErrEl.style.color = '#166534';
+        lastErrEl.style.fontWeight = '600';
+      } else {
+        lastErrEl.textContent = `${errDetails.technicalDetail} — ${errDetails.friendlyMessage}`;
+        lastErrEl.style.color = '#dc2626';
+        lastErrEl.style.fontWeight = '700';
+      }
+    }
 
     /* CONFIGURAÇÃO DO FIREBASE FIRESTORE */
     const FIREBASE_CONFIG = {
@@ -1871,8 +1946,12 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
-          const errMsg = errData.error ? errData.error.message : `HTTP ${response.status}`;
-          throw new Error(errMsg);
+          console.error('[Firestore Error - GET produtos] Status HTTP:', response.status, 'Resposta:', errData);
+          const errDetails = formatDetailedFirestoreError(response.status, errData);
+          setLastError(errDetails);
+          showErrorBanner(errDetails.friendlyMessage);
+          showToast(errDetails.friendlyMessage, 5000, true);
+          throw new Error(errDetails.friendlyMessage);
         }
 
         const data = await response.json();
@@ -1880,30 +1959,32 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
         if (firestoreDocs.length > 0) {
           produtos = firestoreDocs.map(parseFirestoreDoc);
+          localStorage.setItem(STORAGE_KEYS.PRODUTOS, JSON.stringify(produtos));
+          updateDiagStatus('online', 'Conectado ao Firestore (projeto: calculadora-armaq)', `Sincronizado: ${produtos.length} produto(s) carregados da nuvem.`);
         } else {
-          // Se coleção estiver vazia, preservar dados locais se houver
-          const rawLocal = localStorage.getItem(STORAGE_KEYS.PRODUTOS);
-          if (rawLocal) {
-            try { produtos = JSON.parse(rawLocal); } catch (e) { produtos = []; }
-          } else {
-            produtos = [];
-          }
+          produtos = [];
+          localStorage.setItem(STORAGE_KEYS.PRODUTOS, JSON.stringify([]));
+          updateDiagStatus('online', 'Conectado ao Firestore (projeto: calculadora-armaq)', 'Conexão ativa • Nenhum produto cadastrado no Firestore.');
         }
 
         isCloudConnected = true;
-        updateDiagStatus('online', 'Conectado ao Firestore (projeto: calculadora-armaq)', `Sincronizado: ${produtos.length} produto(s) carregados da nuvem.`);
-        localStorage.setItem(STORAGE_KEYS.PRODUTOS, JSON.stringify(produtos));
+        setLastError(null);
+        closeErrorBanner();
       } catch (err) {
-        console.warn('Falha na conexão com Firestore REST:', err);
+        console.error('Falha na conexão com Firestore REST (GET produtos):', err);
         isCloudConnected = false;
         updateDiagStatus('error', 'Falha na conexão — usando modo local', `⚠️ Sem conexão com a nuvem (${err.message}) — dados salvos apenas neste navegador`);
         
         // Fallback local
         const rawLocal = localStorage.getItem(STORAGE_KEYS.PRODUTOS);
         if (rawLocal) {
-          try { produtos = JSON.parse(rawLocal); } catch (e) { produtos = DEFAULT_PRODUTOS; }
+          try {
+            produtos = JSON.parse(rawLocal);
+          } catch (e) {
+            produtos = [];
+          }
         } else {
-          produtos = DEFAULT_PRODUTOS;
+          produtos = [];
         }
       } finally {
         renderProdutosTable();
@@ -1936,7 +2017,11 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
         if (!createRes.ok) {
           const errData = await createRes.json().catch(() => ({}));
-          throw new Error('Falha no CREATE: ' + (errData.error?.message || `HTTP ${createRes.status}`));
+          console.error('[Firestore Error - TEST CREATE] Status HTTP:', createRes.status, 'Resposta:', errData);
+          const errDetails = formatDetailedFirestoreError(createRes.status, errData);
+          setLastError(errDetails);
+          showErrorBanner(errDetails.friendlyMessage);
+          throw new Error(errDetails.friendlyMessage);
         }
 
         const createData = await createRes.json();
@@ -1946,23 +2031,35 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         const readUrl = `https://firestore.googleapis.com/v1/${createdDocName}?key=${FIREBASE_CONFIG.apiKey}`;
         const readRes = await fetch(readUrl);
         if (!readRes.ok) {
-          throw new Error('Falha no READ do documento de teste');
+          const errData = await readRes.json().catch(() => ({}));
+          console.error('[Firestore Error - TEST READ] Status HTTP:', readRes.status, 'Resposta:', errData);
+          const errDetails = formatDetailedFirestoreError(readRes.status, errData);
+          setLastError(errDetails);
+          showErrorBanner(errDetails.friendlyMessage);
+          throw new Error(errDetails.friendlyMessage);
         }
 
         // 3. DELETE (DELETE)
         const deleteUrl = `https://firestore.googleapis.com/v1/${createdDocName}?key=${FIREBASE_CONFIG.apiKey}`;
         const deleteRes = await fetch(deleteUrl, { method: 'DELETE' });
         if (!deleteRes.ok) {
-          throw new Error('Falha no DELETE do documento de teste');
+          const errData = await deleteRes.json().catch(() => ({}));
+          console.error('[Firestore Error - TEST DELETE] Status HTTP:', deleteRes.status, 'Resposta:', errData);
+          const errDetails = formatDetailedFirestoreError(deleteRes.status, errData);
+          setLastError(errDetails);
+          showErrorBanner(errDetails.friendlyMessage);
+          throw new Error(errDetails.friendlyMessage);
         }
 
         isCloudConnected = true;
+        setLastError(null);
+        closeErrorBanner();
         updateDiagStatus('online', 'Conectado ao Firestore (projeto: calculadora-armaq)', '✅ Teste CRUD validado com sucesso: Create, Read e Delete executados em tempo real!');
         showToast('✅ CRUD no Firestore realizado com sucesso!');
       } catch (err) {
         console.error('Erro no teste de conexão:', err);
         updateDiagStatus('error', 'Falha na conexão — usando modo local', `Erro no teste CRUD: ${err.message}`);
-        showToast(`❌ Falha no teste do Firestore: ${err.message}`, 4000);
+        showToast(err.message, 5000, true);
       } finally {
         if (btn) btn.disabled = false;
       }
@@ -2285,7 +2382,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       const nome = document.getElementById('prod-nome').value.trim();
       const sku = document.getElementById('prod-sku').value.trim();
       if (!nome || !sku) {
-        showToast('Por favor, preencha o Nome e o SKU do produto.');
+        showToast('Por favor, preencha o Nome e o SKU do produto.', 3000, true);
         return;
       }
 
@@ -2299,6 +2396,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       const productPayload = {
         id: editingId || 'prod-' + Date.now(),
         docName: editingDocName || existingProd?.docName || '',
+        isLocal: false,
         nome,
         sku,
         codInterno: document.getElementById('prod-cod-interno').value.trim(),
@@ -2323,68 +2421,72 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       };
 
       const firestoreFields = buildFirestoreFields(productPayload, results.cfTotal, productPayload.precos);
-      let cloudSaved = false;
 
       try {
-        if (productPayload.docName) {
-          // PATCH de atualização do documento existente no Firestore
+        let res;
+        const isEditing = Boolean(productPayload.docName);
+
+        if (isEditing) {
+          // PATCH no documento existente no Firestore
           const patchUrl = `https://firestore.googleapis.com/v1/${productPayload.docName}?key=${FIREBASE_CONFIG.apiKey}`;
-          const res = await fetch(patchUrl, {
+          res = await fetch(patchUrl, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fields: firestoreFields })
           });
-
-          if (!res.ok) {
-            const errJson = await res.json().catch(() => ({}));
-            throw new Error(errJson.error?.message || `HTTP ${res.status}`);
-          }
-          const updatedDoc = await res.json();
-          productPayload.docName = updatedDoc.name;
-          cloudSaved = true;
         } else {
           // POST para criar novo documento na coleção produtos
-          const res = await fetch(FIRESTORE_PRODUTOS_URL, {
+          res = await fetch(FIRESTORE_PRODUTOS_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fields: firestoreFields })
           });
-
-          if (!res.ok) {
-            const errJson = await res.json().catch(() => ({}));
-            throw new Error(errJson.error?.message || `HTTP ${res.status}`);
-          }
-          const createdDoc = await res.json();
-          productPayload.docName = createdDoc.name;
-          productPayload.id = createdDoc.name.split('/').pop();
-          cloudSaved = true;
         }
 
-        isCloudConnected = true;
-        updateDiagStatus('online', 'Conectado ao Firestore (projeto: calculadora-armaq)', `Nuvem atualizada: produto "${nome}" sincronizado.`);
-        showToast('✅ Produto salvo na nuvem com sucesso!');
-      } catch (err) {
-        console.warn('Falha ao salvar no Firestore, usando fallback local:', err);
-        isCloudConnected = false;
-        updateDiagStatus('error', 'Falha na conexão — usando modo local', `⚠️ Sem conexão com a nuvem (${err.message}) — dados salvos apenas neste navegador`);
-        showToast('⚠️ Sem conexão com a nuvem — dados salvos apenas neste navegador');
-      }
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.error(`[Firestore Error - ${isEditing ? 'PATCH' : 'POST'}] Status HTTP:`, res.status, 'Resposta:', errData);
+          const errDetails = formatDetailedFirestoreError(res.status, errData);
+          setLastError(errDetails);
+          showErrorBanner(errDetails.friendlyMessage);
+          showToast(errDetails.friendlyMessage, 5000, true);
+          throw new Error(errDetails.friendlyMessage);
+        }
 
-      // Persistência na memória e localStorage
-      if (editingId) {
-        const index = produtos.findIndex(p => p.id === editingId);
-        if (index >= 0) {
-          produtos[index] = productPayload;
+        // Sucesso na nuvem
+        const savedDoc = await res.json();
+        isCloudConnected = true;
+        setLastError(null);
+        closeErrorBanner();
+        updateDiagStatus('online', 'Conectado ao Firestore (projeto: calculadora-armaq)', `Nuvem sincronizada: produto "${nome}" gravado.`);
+        showToast('✅ Produto salvo na nuvem');
+
+        // Recarregar imediatamente da nuvem (GET) para garantir sincronização
+        cancelEdit();
+        await fetchProdutosFromFirestore();
+        switchTab('produtos');
+
+      } catch (err) {
+        console.warn('Erro ao salvar no Firestore. Ativando reserva local:', err);
+        isCloudConnected = false;
+        productPayload.isLocal = true;
+
+        // Salvar no localStorage como reserva
+        if (editingId) {
+          const index = produtos.findIndex(p => p.id === editingId);
+          if (index >= 0) {
+            produtos[index] = productPayload;
+          } else {
+            produtos.unshift(productPayload);
+          }
         } else {
           produtos.unshift(productPayload);
         }
-      } else {
-        produtos.unshift(productPayload);
-      }
 
-      saveProdutosToStorage();
-      cancelEdit();
-      switchTab('produtos');
+        saveProdutosToStorage();
+        cancelEdit();
+        switchTab('produtos');
+      }
     }
 
     function editProduct(id) {
@@ -2456,25 +2558,28 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         return;
       }
 
-      let cloudDeleted = false;
       if (prod.docName) {
         try {
           const deleteUrl = `https://firestore.googleapis.com/v1/${prod.docName}?key=${FIREBASE_CONFIG.apiKey}`;
           const res = await fetch(deleteUrl, { method: 'DELETE' });
           if (!res.ok) {
             const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error?.message || `HTTP ${res.status}`);
+            console.error('[Firestore Error - DELETE] Status HTTP:', res.status, 'Resposta:', errData);
+            const errDetails = formatDetailedFirestoreError(res.status, errData);
+            setLastError(errDetails);
+            showErrorBanner(errDetails.friendlyMessage);
+            showToast(errDetails.friendlyMessage, 5000, true);
+            throw new Error(errDetails.friendlyMessage);
           }
-          cloudDeleted = true;
           isCloudConnected = true;
+          setLastError(null);
           showToast('✅ Produto excluído da nuvem');
         } catch (err) {
           console.warn('Erro ao excluir no Firestore:', err);
-          updateDiagStatus('error', 'Falha na conexão — usando modo local', `Erro na exclusão remota (${err.message}) — excluído localmente`);
-          showToast('⚠️ Excluído apenas localmente (falha no Firestore)');
+          showToast('⚠️ Excluído apenas localmente (falha no Firestore)', 4000, true);
         }
       } else {
-        showToast('Produto excluído com sucesso.');
+        showToast('Produto local excluído com sucesso.');
       }
 
       produtos = produtos.filter(p => p.id !== id);
@@ -2569,14 +2674,22 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         const shPrice = prod.precos ? prod.precos.sh : 0;
         const mlPrice = prod.precos ? prod.precos.ml : 0;
 
+        const isLocalOnly = Boolean(prod.isLocal || !prod.docName);
+        const originBadge = isLocalOnly
+          ? '<span class="shell-badge" style="font-size: 0.68rem; background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; margin-left: 6px; font-weight: 700;" title="Salvo apenas no armazenamento local deste navegador">Local</span>'
+          : '<span class="shell-badge" style="font-size: 0.68rem; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; margin-left: 6px; font-weight: 600;" title="Sincronizado na nuvem Firestore">Nuvem</span>';
+
         tr.innerHTML = `
           <td style="text-align: center;">
             <input type="checkbox" class="row-select-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelectProduct('${prod.id}', this.checked)">
           </td>
-          <td><strong style="color: #1e40af;">${escapeHTML(prod.sku)}</strong></td>
+          <td>
+            <strong style="color: #1e40af;">${escapeHTML(prod.sku)}</strong>
+            ${originBadge}
+          </td>
           <td>
             <div style="font-weight: 600; color: #0f172a;">${escapeHTML(prod.nome)}</div>
-            <small style="color: #64748b;">Margem: ${prod.margem}% • Imp: ${prod.imposto}%</small>
+            <small style="color: #64748b;">Margem: ${prod.margem}% • Imp: ${prod.imposto}% • Tray: ${prod.comissaoTray ?? 1.0}%</small>
           </td>
           <td style="color: #64748b;">${escapeHTML(prod.codInterno || '—')}</td>
           <td class="num-cell" style="font-weight: 600;">${fmtBRL(prod.custo)}</td>
