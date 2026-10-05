@@ -2118,6 +2118,38 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
     let isCloudConnected = false;
 
+    /* 1.1 VARIÁVEL E FUNÇÃO GLOBAL: CUSTO FIXO TOTAL */
+    var cfTotal = 0;
+
+    function calcularCustoFixo() {
+      const custoEl = document.getElementById('prod-custo');
+      const etiquetaEl = document.getElementById('prod-etiqueta');
+      const embSelectEl = document.getElementById('prod-embalagem');
+      const embQtdEl = document.getElementById('prod-embalagem-qtd');
+
+      const custo = parseFloat(custoEl ? custoEl.value : 0) || 0;
+      const etiqueta = parseFloat(etiquetaEl ? etiquetaEl.value : 0) || 0;
+      const embId = embSelectEl ? embSelectEl.value : '';
+      const qtdVal = parseFloat(embQtdEl ? embQtdEl.value : 1);
+      const qtdEmbalagem = qtdVal > 0 ? qtdVal : 1;
+
+      let valorEmbalagem = 0;
+      if (typeof embalagens !== 'undefined' && Array.isArray(embalagens)) {
+        const found = embalagens.find(e => e.id === embId);
+        if (found) {
+          valorEmbalagem = parseFloat(found.valor) || 0;
+        }
+      }
+
+      cfTotal = (parseFloat(custo) || 0) + (parseFloat(etiqueta) || 0) + ((parseFloat(valorEmbalagem) || 0) / (parseFloat(qtdEmbalagem) > 0 ? parseFloat(qtdEmbalagem) : 1));
+
+      const displayEl = document.getElementById('display-cf-total');
+      if (displayEl && typeof fmtBRL === 'function') {
+        displayEl.textContent = fmtBRL(cfTotal);
+      }
+      return cfTotal;
+    }
+
     const DEFAULT_EMBALAGENS = [
       { id: 'emb-1', nome: 'Caixa Papelão Padrão Pequena', valor: 1.20, unidade: 'un' },
       { id: 'emb-2', nome: 'Envelope de Segurança com Plástico Bolha', valor: 0.85, unidade: 'un' },
@@ -2490,25 +2522,42 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
     /* MOTOR DE CÁLCULO DE PRECIFICAÇÃO */
     function getFormInputs() {
-      const custo = parseFloat(document.getElementById('prod-custo').value) || 0;
-      const etiqueta = parseFloat(document.getElementById('prod-etiqueta').value) || 0;
-      const embId = document.getElementById('prod-embalagem').value;
-      const embQtd = Math.max(1, parseInt(document.getElementById('prod-embalagem-qtd').value, 10) || 1);
-      const impostoPct = (parseFloat(document.getElementById('prod-imposto').value) || 0) / 100;
-      const repPct = (parseFloat(document.getElementById('prod-comissao-rep').value) || 0) / 100;
-      const trayPct = (parseFloat(document.getElementById('prod-comissao-tray').value) || 0) / 100;
-      const margemPct = (parseFloat(document.getElementById('prod-margem').value) || 0) / 100;
+      const custoEl = document.getElementById('prod-custo');
+      const etiquetaEl = document.getElementById('prod-etiqueta');
+      const embSelectEl = document.getElementById('prod-embalagem');
+      const embQtdEl = document.getElementById('prod-embalagem-qtd');
+      const impostoEl = document.getElementById('prod-imposto');
+      const repEl = document.getElementById('prod-comissao-rep');
+      const trayEl = document.getElementById('prod-comissao-tray');
+      const margemEl = document.getElementById('prod-margem');
 
-      const embObj = embalagens.find(e => e.id === embId) || { valor: 0 };
+      const custo = parseFloat(custoEl ? custoEl.value : 0) || 0;
+      const etiqueta = parseFloat(etiquetaEl ? etiquetaEl.value : 0) || 0;
+      const embId = embSelectEl ? embSelectEl.value : '';
+      const embQtd = Math.max(1, parseInt(embQtdEl ? embQtdEl.value : 1, 10) || 1);
+      const impostoPct = (parseFloat(impostoEl ? impostoEl.value : 0) || 0) / 100;
+      const repPct = (parseFloat(repEl ? repEl.value : 0) || 0) / 100;
+      const trayPct = (parseFloat(trayEl ? trayEl.value : 1) || 0) / 100;
+      const margemPct = (parseFloat(margemEl ? margemEl.value : 0) || 0) / 100;
+
+      calcularCustoFixo();
+      const embObj = (typeof embalagens !== 'undefined' && Array.isArray(embalagens))
+        ? (embalagens.find(e => e.id === embId) || { valor: 0 })
+        : { valor: 0 };
       const embUnitario = embObj.valor / embQtd;
-      const cfTotal = custo + etiqueta + embUnitario;
 
       // ML config
-      const mlTipo = document.getElementById('ml-tipo-anuncio').value;
-      const mlCatId = document.getElementById('ml-categoria').value;
-      const mlCat = categorias.find(c => c.id === mlCatId) || { classico: 12, premium: 17 };
+      const mlTipoEl = document.getElementById('ml-tipo-anuncio');
+      const mlCatEl = document.getElementById('ml-categoria');
+      const mlFaixaEl = document.getElementById('ml-faixa-peso');
+
+      const mlTipo = mlTipoEl ? mlTipoEl.value : 'premium';
+      const mlCatId = mlCatEl ? mlCatEl.value : '';
+      const mlCat = (typeof categorias !== 'undefined' && Array.isArray(categorias))
+        ? (categorias.find(c => c.id === mlCatId) || { classico: 12, premium: 17 })
+        : { classico: 12, premium: 17 };
       const mlComissaoPct = ((mlTipo === 'premium' ? mlCat.premium : mlCat.classico) || 0) / 100;
-      const mlFaixaPeso = parseInt(document.getElementById('ml-faixa-peso').value, 10) || 300;
+      const mlFaixaPeso = parseInt(mlFaixaEl ? mlFaixaEl.value : 300, 10) || 300;
 
       return {
         custo,
@@ -2719,52 +2768,67 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       };
     }
 
+    function atualizarCards() {
+      return triggerRecalc();
+    }
+
+    function precificar() {
+      return triggerRecalc();
+    }
+
     function triggerRecalc() {
+      calcularCustoFixo();
       const data = getFormInputs();
 
       // Display CF Total
-      document.getElementById('display-cf-total').textContent = fmtBRL(data.cfTotal);
+      const cfEl = document.getElementById('display-cf-total');
+      if (cfEl) cfEl.textContent = fmtBRL(cfTotal);
 
       // TikTok (aplica comissão Tray)
-      const tt = calculateTikTok(data.cfTotal, data.impostoPct, data.repPct, data.trayPct, data.margemPct);
-      document.getElementById('tt-preco').textContent = fmtBRL(tt.preco);
-      document.getElementById('tt-faixa').textContent = tt.faixa;
-      document.getElementById('tt-imposto').textContent = fmtBRL(tt.imposto);
-      document.getElementById('tt-comissao-rep').textContent = fmtBRL(tt.comissaoRep);
-      document.getElementById('tt-comissao-tray').textContent = fmtBRL(tt.comissaoTray);
-      document.getElementById('tt-comissao-plat').textContent = fmtBRL(tt.comissaoPlat);
-      document.getElementById('tt-taxa-fixa').textContent = fmtBRL(tt.taxaFixa);
-      document.getElementById('tt-frete').textContent = fmtBRL(tt.frete);
-      document.getElementById('tt-total-taxas').textContent = fmtBRL(tt.totalTaxas);
-      document.getElementById('tt-lucro').textContent = fmtBRL(tt.lucro);
-      document.getElementById('tt-margem-real').textContent = fmtPct(tt.margemReal);
+      const tt = calculateTikTok(cfTotal, data.impostoPct, data.repPct, data.trayPct, data.margemPct);
+      const setTxt = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+
+      setTxt('tt-preco', fmtBRL(tt.preco));
+      setTxt('tt-faixa', tt.faixa);
+      setTxt('tt-imposto', fmtBRL(tt.imposto));
+      setTxt('tt-comissao-rep', fmtBRL(tt.comissaoRep));
+      setTxt('tt-comissao-tray', fmtBRL(tt.comissaoTray));
+      setTxt('tt-comissao-plat', fmtBRL(tt.comissaoPlat));
+      setTxt('tt-taxa-fixa', fmtBRL(tt.taxaFixa));
+      setTxt('tt-frete', fmtBRL(tt.frete));
+      setTxt('tt-total-taxas', fmtBRL(tt.totalTaxas));
+      setTxt('tt-lucro', fmtBRL(tt.lucro));
+      setTxt('tt-margem-real', fmtPct(tt.margemReal));
 
       // Shopee (NÃO aplica comissão Tray)
-      const sh = calculateShopee(data.cfTotal, data.impostoPct, data.repPct, data.margemPct);
-      document.getElementById('sh-preco').textContent = fmtBRL(sh.preco);
-      document.getElementById('sh-faixa').textContent = sh.faixa;
-      document.getElementById('sh-imposto').textContent = fmtBRL(sh.imposto);
-      document.getElementById('sh-comissao-rep').textContent = fmtBRL(sh.comissaoRep);
-      document.getElementById('sh-comissao-plat').textContent = fmtBRL(sh.comissaoPlat);
-      document.getElementById('sh-taxa-fixa').textContent = fmtBRL(sh.taxaFixa);
-      document.getElementById('sh-frete').textContent = fmtBRL(sh.frete);
-      document.getElementById('sh-total-taxas').textContent = fmtBRL(sh.totalTaxas);
-      document.getElementById('sh-lucro').textContent = fmtBRL(sh.lucro);
-      document.getElementById('sh-margem-real').textContent = fmtPct(sh.margemReal);
+      const sh = calculateShopee(cfTotal, data.impostoPct, data.repPct, data.margemPct);
+      setTxt('sh-preco', fmtBRL(sh.preco));
+      setTxt('sh-faixa', sh.faixa);
+      setTxt('sh-imposto', fmtBRL(sh.imposto));
+      setTxt('sh-comissao-rep', fmtBRL(sh.comissaoRep));
+      setTxt('sh-comissao-plat', fmtBRL(sh.comissaoPlat));
+      setTxt('sh-taxa-fixa', fmtBRL(sh.taxaFixa));
+      setTxt('sh-frete', fmtBRL(sh.frete));
+      setTxt('sh-total-taxas', fmtBRL(sh.totalTaxas));
+      setTxt('sh-lucro', fmtBRL(sh.lucro));
+      setTxt('sh-margem-real', fmtPct(sh.margemReal));
 
       // Mercado Livre (NÃO aplica comissão Tray)
-      const ml = calculateML(data.cfTotal, data.impostoPct, data.repPct, data.margemPct, data.mlComissaoPct, data.mlFaixaPeso);
-      document.getElementById('ml-preco').textContent = fmtBRL(ml.preco);
-      document.getElementById('ml-faixa').textContent = ml.faixa;
-      document.getElementById('ml-imposto').textContent = fmtBRL(ml.imposto);
-      document.getElementById('ml-comissao-rep').textContent = fmtBRL(ml.comissaoRep);
-      document.getElementById('ml-lbl-comissao').textContent = `Comissão categoria (${(ml.mlComissaoPct * 100).toFixed(1)}%):`;
-      document.getElementById('ml-comissao-plat').textContent = fmtBRL(ml.comissaoPlat);
-      document.getElementById('ml-taxa-fixa').textContent = fmtBRL(ml.taxaFixa);
-      document.getElementById('ml-frete').textContent = fmtBRL(ml.frete);
-      document.getElementById('ml-total-taxas').textContent = fmtBRL(ml.totalTaxas);
-      document.getElementById('ml-lucro').textContent = fmtBRL(ml.lucro);
-      document.getElementById('ml-margem-real').textContent = fmtPct(ml.margemReal);
+      const ml = calculateML(cfTotal, data.impostoPct, data.repPct, data.margemPct, data.mlComissaoPct, data.mlFaixaPeso);
+      setTxt('ml-preco', fmtBRL(ml.preco));
+      setTxt('ml-faixa', ml.faixa);
+      setTxt('ml-imposto', fmtBRL(ml.imposto));
+      setTxt('ml-comissao-rep', fmtBRL(ml.comissaoRep));
+      setTxt('ml-lbl-comissao', `Comissão categoria (${(ml.mlComissaoPct * 100).toFixed(1)}%):`);
+      setTxt('ml-comissao-plat', fmtBRL(ml.comissaoPlat));
+      setTxt('ml-taxa-fixa', fmtBRL(ml.taxaFixa));
+      setTxt('ml-frete', fmtBRL(ml.frete));
+      setTxt('ml-total-taxas', fmtBRL(ml.totalTaxas));
+      setTxt('ml-lucro', fmtBRL(ml.lucro));
+      setTxt('ml-margem-real', fmtPct(ml.margemReal));
 
       return { tt, sh, ml, cfTotal };
     }
@@ -2784,6 +2848,9 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       showToast('⏳ Salvando produto...', 2000);
 
       try {
+        // Garante cálculo inicial e existência do Custo Fixo Total
+        calcularCustoFixo();
+
         const nomeInput = document.getElementById('prod-nome');
         const skuInput = document.getElementById('prod-sku');
         const nome = (nomeInput ? nomeInput.value : '').trim();
@@ -2794,10 +2861,15 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           showToast('⚠️ Por favor, informe o Nome e o SKU do produto.', 3500, true);
           if (!nome && nomeInput) nomeInput.focus();
           else if (!sku && skuInput) skuInput.focus();
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = origBtnText;
+          }
           return;
         }
 
         const results = triggerRecalc();
+        const custoFixoCalculado = (typeof cfTotal !== 'undefined' && cfTotal > 0) ? cfTotal : (results && results.cfTotal ? results.cfTotal : calcularCustoFixo());
         const editingId = document.getElementById('editing-product-id').value;
         const editingDocName = document.getElementById('editing-product-docname').value;
 
@@ -2810,19 +2882,19 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           isLocal: false,
           nome,
           sku,
-          codInterno: (document.getElementById('prod-cod-interno').value || '').trim(),
-          custo: parseFloat(document.getElementById('prod-custo').value) || 0,
-          etiqueta: parseFloat(document.getElementById('prod-etiqueta').value) || 0,
-          embalagemId: document.getElementById('prod-embalagem').value,
-          embalagemQtd: parseInt(document.getElementById('prod-embalagem-qtd').value, 10) || 1,
-          imposto: parseFloat(document.getElementById('prod-imposto').value) || 0,
-          comissaoRep: parseFloat(document.getElementById('prod-comissao-rep').value) || 0,
-          comissaoTray: parseFloat(document.getElementById('prod-comissao-tray').value) || 1.0,
-          margem: parseFloat(document.getElementById('prod-margem').value) || 0,
-          custoFixo: results.cfTotal,
-          mlTipoAnuncio: document.getElementById('ml-tipo-anuncio').value,
-          mlCategoriaId: document.getElementById('ml-categoria').value,
-          mlFaixaPeso: parseInt(document.getElementById('ml-faixa-peso').value, 10) || 300,
+          codInterno: (document.getElementById('prod-cod-interno')?.value || '').trim(),
+          custo: parseFloat(document.getElementById('prod-custo')?.value) || 0,
+          etiqueta: parseFloat(document.getElementById('prod-etiqueta')?.value) || 0,
+          embalagemId: document.getElementById('prod-embalagem')?.value || '',
+          embalagemQtd: parseInt(document.getElementById('prod-embalagem-qtd')?.value, 10) || 1,
+          imposto: parseFloat(document.getElementById('prod-imposto')?.value) || 0,
+          comissaoRep: parseFloat(document.getElementById('prod-comissao-rep')?.value) || 0,
+          comissaoTray: parseFloat(document.getElementById('prod-comissao-tray')?.value) || 1.0,
+          margem: parseFloat(document.getElementById('prod-margem')?.value) || 0,
+          custoFixo: custoFixoCalculado,
+          mlTipoAnuncio: document.getElementById('ml-tipo-anuncio')?.value || 'premium',
+          mlCategoriaId: document.getElementById('ml-categoria')?.value || 'cat-1',
+          mlFaixaPeso: parseInt(document.getElementById('ml-faixa-peso')?.value, 10) || 300,
           dataCadastro,
           precos: {
             tt: results.tt.preco,
@@ -3465,6 +3537,8 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
     }
 
     /* 4. MAPEAMENTO DE HANDLERS NO ESCOPO GLOBAL WINDOW */
+    window.calcularCustoFixo = calcularCustoFixo;
+    window.atualizarCards = atualizarCards;
     window.salvarProduto = saveProduct;
     window.saveProduct = saveProduct;
     window.precificar = triggerRecalc;
@@ -3502,9 +3576,11 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
     document.addEventListener('DOMContentLoaded', () => {
       try {
         logDiag('Inicializando aplicação ArmaQ Precificação...');
+        calcularCustoFixo();
         loadInitialLocalConfigs();
         renderEmbalagemOptions();
         renderCategoriaOptions();
+        calcularCustoFixo();
         triggerRecalc();
         fetchProdutosFromFirestore();
         logDiag('Aplicação pronta para uso.');
