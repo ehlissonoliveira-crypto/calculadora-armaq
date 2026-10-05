@@ -185,47 +185,57 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
     .brand-title {
       font-family: "Playfair Display", Georgia, serif;
-      font-size: 1.55rem;
+      font-size: 1.7rem;
       font-weight: 700;
       color: #ffffff;
       margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
       letter-spacing: -0.01em;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+      line-height: 1.2;
+    }
+
+    .logo-container {
+      background: #ffffff;
+      padding: 6px 10px;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 12px rgba(224, 192, 104, 0.3);
+      border: 2px solid rgba(224, 192, 104, 0.7);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .logo-container:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(224, 192, 104, 0.45);
     }
 
     #logoArmaq {
-      height: 44px;
-      width: 44px;
-      border-radius: 50%;
+      height: 68px;
+      width: auto;
+      max-width: 180px;
       object-fit: contain;
-      border: 2px solid rgba(224, 192, 104, 0.6);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 12px rgba(201, 162, 75, 0.25);
+      display: block;
       background: transparent;
-      margin-right: 12px;
-      display: inline-block;
-      vertical-align: middle;
-      flex-shrink: 0;
     }
 
     #logoFallback {
       display: none;
       align-items: center;
       justify-content: center;
-      width: 44px;
-      height: 44px;
+      width: 74px;
+      height: 74px;
       border-radius: 50%;
       background: linear-gradient(135deg, #b91c1c 0%, #161925 100%);
-      border: 2px solid rgba(224, 192, 104, 0.6);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), 0 0 12px rgba(201, 162, 75, 0.25);
+      border: 2.5px solid rgba(224, 192, 104, 0.75);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 14px rgba(201, 162, 75, 0.35);
       color: #ffffff;
       font-family: "Playfair Display", Georgia, serif;
-      font-size: 1.35rem;
+      font-size: 2.2rem;
       font-weight: 700;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-      margin-right: 12px;
       vertical-align: middle;
       flex-shrink: 0;
       user-select: none;
@@ -1212,8 +1222,10 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
   <!-- CABEÇALHO COM GRADIENTE PREMIUM -->
   <header class="top-header">
     <div class="shell-container header-inner">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <img id="logoArmaq" src="https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/logo.png" alt="Logo ArmaQ" onerror="this.style.display='none'; const fb=document.getElementById('logoFallback'); if(fb) fb.style.display='inline-flex';" onload="this.style.display='inline-block'; const fb=document.getElementById('logoFallback'); if(fb) fb.style.display='none';">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="logo-container" id="logoContainer">
+          <img id="logoArmaq" src="https://raw.githubusercontent.com/ehlissonoliveira-crypto/calculadora-armaq/refs/heads/main/logo.png" alt="Logo ArmaQ" onerror="const c=document.getElementById('logoContainer'); if(c) c.style.display='none'; const fb=document.getElementById('logoFallback'); if(fb) fb.style.display='inline-flex';" onload="const c=document.getElementById('logoContainer'); if(c) c.style.display='inline-flex'; this.style.display='block'; const fb=document.getElementById('logoFallback'); if(fb) fb.style.display='none';">
+        </div>
         <span id="logoFallback" title="ArmaQ Comércio de Máquinas">A</span>
         <div>
           <h1 class="brand-title">ArmaQ Comércio de Máquinas</h1>
