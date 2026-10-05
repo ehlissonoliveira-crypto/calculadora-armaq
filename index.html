@@ -794,6 +794,64 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       color: #10b981;
     }
 
+    /* COMPARISON CALLOUT IN CARDS */
+    .market-comparison-box {
+      margin-top: 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .comp-item-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      padding: 0.45rem 0.6rem;
+      background: rgba(10, 12, 18, 0.6);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.75rem;
+      text-align: left;
+    }
+
+    .comp-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    .comp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: 0.01em;
+    }
+
+    .comp-badge.green {
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.45);
+    }
+
+    .comp-badge.amber {
+      background: rgba(245, 158, 11, 0.18);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+
+    .comp-badge.red {
+      background: rgba(239, 68, 68, 0.18);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+    }
+
     /* ACCORDIONS */
     .accordion-group {
       margin-top: 1.75rem;
@@ -1237,11 +1295,11 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
               <div class="form-group">
                 <label class="form-label" for="prod-custo">Custo do produto R$ <span class="req">*</span></label>
-                <input type="number" step="0.01" min="0" id="prod-custo" class="form-input" placeholder="0,00" value="25.00" required oninput="triggerRecalc()">
+                <input type="number" step="0.01" min="0" id="prod-custo" class="form-input" placeholder="0,00" value="" required oninput="triggerRecalc()">
               </div>
               <div class="form-group">
                 <label class="form-label" for="prod-etiqueta">Etiqueta R$</label>
-                <input type="number" step="0.01" min="0" id="prod-etiqueta" class="form-input" placeholder="0,00" value="0.35" oninput="triggerRecalc()">
+                <input type="number" step="0.01" min="0" id="prod-etiqueta" class="form-input" placeholder="0,00" value="0.03" oninput="triggerRecalc()">
               </div>
             </div>
 
@@ -1267,30 +1325,93 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
                 <div class="cf-label">Custo Fixo Total (CF)</div>
                 <div style="font-size: 0.725rem; color: #475569;">Custo + Etiqueta + Embalagem unitária</div>
               </div>
-              <div class="cf-value" id="display-cf-total">R$ 26,55</div>
+              <div class="cf-value" id="display-cf-total">R$ 1,23</div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
               <div class="form-group">
                 <label class="form-label" for="prod-imposto" title="Imposto de saída Simples/Lucro">Imposto (%)</label>
-                <input type="number" step="0.1" min="0" max="100" id="prod-imposto" class="form-input" value="6.0" oninput="triggerRecalc()">
+                <input type="number" step="0.1" min="0" max="100" id="prod-imposto" class="form-input" value="8.0" oninput="triggerRecalc()">
               </div>
               <div class="form-group">
                 <label class="form-label" for="prod-margem" title="Margem de lucro desejada">Margem Líquida (%) <span class="req">*</span></label>
-                <input type="number" step="0.5" min="0" max="500" id="prod-margem" class="form-input" value="20.0" required oninput="triggerRecalc()">
+                <input type="number" step="0.5" min="0" max="500" id="prod-margem" class="form-input" value="15.0" required oninput="triggerRecalc()">
               </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem;">
               <div class="form-group">
                 <label class="form-label" for="prod-comissao-rep" title="Comissão de vendas">Comissão Ehlisson (%)</label>
-                <input type="number" step="0.1" min="0" max="100" id="prod-comissao-rep" class="form-input" value="3.0" oninput="triggerRecalc()">
+                <input type="number" step="0.1" min="0" max="100" id="prod-comissao-rep" class="form-input" value="1.0" oninput="triggerRecalc()">
               </div>
               <div class="form-group">
                 <label class="form-label" for="prod-comissao-tray" title="Comissão Tray (aplica-se apenas no canal TikTok Shop)">
                   Comissão Tray (%) <span style="font-size: 0.72rem; color: #dc2626; font-weight: normal;">(só TikTok)</span>
                 </label>
                 <input type="number" step="0.1" min="0" max="100" id="prod-comissao-tray" class="form-input" value="1.0" oninput="triggerRecalc()">
+              </div>
+            </div>
+
+            <!-- SEÇÃO: COMPARAÇÃO DE PREÇOS (OPCIONAL) -->
+            <div class="sub-section-box" style="border-color: rgba(201, 162, 75, 0.35); background: linear-gradient(145deg, rgba(20, 23, 35, 0.8), rgba(12, 14, 22, 0.9));">
+              <div class="sub-section-header" style="color: #fbe69e;">
+                <span>📊 Comparação de Preços (opcional)</span>
+                <span style="font-size: 0.7rem; font-weight: normal; color: #94a3b8; text-transform: none; margin-left: auto;">Mercado vs. Praticado</span>
+              </div>
+              <p style="font-size: 0.75rem; color: #94a3b8; margin: 0 0 0.85rem 0; line-height: 1.4;">
+                Opcional: preencha para ver diagnósticos comparativos instantâneos em cada card. 
+                <strong>Preço concorrente</strong> = quanto outros cobram; <strong>Preço praticado</strong> = o que você já cobra hoje.
+              </p>
+
+              <!-- TikTok Shop -->
+              <div style="margin-bottom: 0.75rem; padding-bottom: 0.65rem; border-bottom: 1px dashed rgba(255, 255, 255, 0.08);">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #f43f5e; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+                  <span>🎵 TikTok Shop</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="prod-conc-tt" style="font-size: 0.7rem;" title="Preço visto no concorrente no TikTok Shop">Preço concorrente TT (R$)</label>
+                    <input type="number" step="0.01" min="0" id="prod-conc-tt" class="form-input" placeholder="0,00 — opcional" oninput="triggerRecalc()">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="prod-prat-tt" style="font-size: 0.7rem;" title="Preço que você já cobra atualmente no TikTok Shop">Preço praticado TT (R$)</label>
+                    <input type="number" step="0.01" min="0" id="prod-prat-tt" class="form-input" placeholder="0,00 — opcional" oninput="triggerRecalc()">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Shopee -->
+              <div style="margin-bottom: 0.75rem; padding-bottom: 0.65rem; border-bottom: 1px dashed rgba(255, 255, 255, 0.08);">
+                <div style="font-size: 0.75rem; font-weight: 700; color: #ea580c; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+                  <span>🛒 Shopee</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="prod-conc-sh" style="font-size: 0.7rem;" title="Preço visto no concorrente na Shopee">Preço concorrente Shopee (R$)</label>
+                    <input type="number" step="0.01" min="0" id="prod-conc-sh" class="form-input" placeholder="0,00 — opcional" oninput="triggerRecalc()">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="prod-prat-sh" style="font-size: 0.7rem;" title="Preço que você já cobra atualmente na Shopee">Preço praticado Shopee (R$)</label>
+                    <input type="number" step="0.01" min="0" id="prod-prat-sh" class="form-input" placeholder="0,00 — opcional" oninput="triggerRecalc()">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mercado Livre -->
+              <div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: #facc15; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+                  <span>🟡 Mercado Livre</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="prod-conc-ml" style="font-size: 0.7rem;" title="Preço visto no concorrente no Mercado Livre">Preço concorrente ML (R$)</label>
+                    <input type="number" step="0.01" min="0" id="prod-conc-ml" class="form-input" placeholder="0,00 — opcional" oninput="triggerRecalc()">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" for="prod-prat-ml" style="font-size: 0.7rem;" title="Preço que você já cobra atualmente no Mercado Livre">Preço praticado ML (R$)</label>
+                    <input type="number" step="0.01" min="0" id="prod-prat-ml" class="form-input" placeholder="0,00 — opcional" oninput="triggerRecalc()">
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1366,6 +1487,8 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
                   <div class="price-caption">Preço de Venda Sugerido</div>
                   <div class="price-amount" id="tt-preco">R$ 0,00</div>
                   <div class="price-faixa" id="tt-faixa">calculando...</div>
+                  <!-- Linhas Comparativas Inteligentes (opcional) -->
+                  <div id="tt-comp-box" class="market-comparison-box" style="display: none;"></div>
                 </div>
               </div>
               <div class="market-breakdown">
@@ -1422,6 +1545,8 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
                   <div class="price-caption">Preço de Venda Sugerido</div>
                   <div class="price-amount" id="sh-preco" style="color: #f97316;">R$ 0,00</div>
                   <div class="price-faixa" id="sh-faixa">calculando...</div>
+                  <!-- Linhas Comparativas Inteligentes (opcional) -->
+                  <div id="sh-comp-box" class="market-comparison-box" style="display: none;"></div>
                 </div>
               </div>
               <div class="market-breakdown">
@@ -1474,6 +1599,8 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
                   <div class="price-caption">Preço de Venda Sugerido</div>
                   <div class="price-amount" id="ml-preco" style="color: #facc15;">R$ 0,00</div>
                   <div class="price-faixa" id="ml-faixa">calculando...</div>
+                  <!-- Linhas Comparativas Inteligentes (opcional) -->
+                  <div id="ml-comp-box" class="market-comparison-box" style="display: none;"></div>
                 </div>
               </div>
               <div class="market-breakdown">
@@ -1546,6 +1673,13 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
                       Preço = [ Custo Fixo × (1 + Margem%) + Taxa Fixa + Frete ] / [ 1 − (Imposto% + Comissão Ehlisson% + Comissão Tray%* + Comissão Canal% + Frete Var%) ]
                     </div>
                     <small style="color: #64748b;">* A <strong>Comissão Tray (%)</strong> soma-se unicamente nas deduções do canal <strong>TikTok Shop</strong>, não afetando Shopee nem Mercado Livre. Com iteração automática nas faixas de escalonamento para garantir margem líquida real.</small>
+                  </div>
+                </div>
+
+                <div class="method-step">
+                  <div class="method-step-num">4</div>
+                  <div>
+                    <strong>Comparação de Mercado:</strong> O preço praticado indica se você pode manter ou precisa ajustar; o preço concorrente mostra seu posicionamento frente ao mercado. Os vereditos analisam automaticamente a faixa de paridade (±5%) e fornecem recomendações imediatas de lucro e competitividade.
                   </div>
                 </div>
               </div>
@@ -2184,11 +2318,22 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         mlTipoAnuncio: 'premium',
         mlCategoriaId: 'cat-1',
         mlFaixaPeso: 2000,
+        precoConcTT: 199.90,
+        precoPratTT: 195.00,
+        precoConcSH: 210.00,
+        precoPratSH: 205.00,
+        precoConcML: 245.00,
+        precoPratML: 239.00,
         dataCadastro: new Date().toISOString(),
         precos: {
           tt: 192.89,
           sh: 204.07,
           ml: 236.02
+        },
+        comparativos: {
+          tt: { conc: 199.90, prat: 195.00 },
+          sh: { conc: 210.00, prat: 205.00 },
+          ml: { conc: 245.00, prat: 239.00 }
         }
       }
     ];
@@ -2286,28 +2431,48 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         sku: getVal(fields.sku) || '',
         codInterno: getVal(fields.codInterno) || '',
         custo: getVal(fields.custo) ?? 0,
-        etiqueta: getVal(fields.etiqueta) ?? 0,
+        etiqueta: getVal(fields.etiqueta) ?? 0.03,
         embalagemId: getVal(fields.embalagem) || 'emb-1',
         embalagemQtd: getVal(fields.qtdEmbalagem) ?? 1,
-        imposto: getVal(fields.imposto) ?? 6.0,
-        comissaoRep: getVal(fields.comissaoEhlisson) ?? 3.0,
+        imposto: getVal(fields.imposto) ?? 8.0,
+        comissaoRep: getVal(fields.comissaoEhlisson) ?? 1.0,
         comissaoTray: getVal(fields.comissaoTray) ?? 1.0,
-        margem: getVal(fields.margem) ?? 20.0,
+        margem: getVal(fields.margem) ?? 15.0,
         custoFixo: getVal(fields.custoFixo) ?? 0,
         mlTipoAnuncio: getVal(fields.mlTipoAnuncio) || 'premium',
         mlCategoriaId: getVal(fields.mlCategoriaId) || 'cat-1',
         mlFaixaPeso: getVal(fields.mlFaixaPeso) ?? 300,
+        precoConcTT: getVal(fields.precoConcTT) ?? null,
+        precoPratTT: getVal(fields.precoPratTT) ?? null,
+        precoConcSH: getVal(fields.precoConcSH) ?? null,
+        precoPratSH: getVal(fields.precoPratSH) ?? null,
+        precoConcML: getVal(fields.precoConcML) ?? null,
+        precoPratML: getVal(fields.precoPratML) ?? null,
         dataCadastro: getVal(fields.dataCadastro) || doc.createTime || new Date().toISOString(),
         precos: {
           tt: getVal(fields.precoTikTok) ?? 0,
           sh: getVal(fields.precoShopee) ?? 0,
           ml: getVal(fields.precoML) ?? 0
+        },
+        comparativos: {
+          tt: {
+            conc: getVal(fields.precoConcTT) ?? null,
+            prat: getVal(fields.precoPratTT) ?? null
+          },
+          sh: {
+            conc: getVal(fields.precoConcSH) ?? null,
+            prat: getVal(fields.precoPratSH) ?? null
+          },
+          ml: {
+            conc: getVal(fields.precoConcML) ?? null,
+            prat: getVal(fields.precoPratML) ?? null
+          }
         }
       };
     }
 
     function buildFirestoreFields(prod, cfTotal, precos) {
-      return {
+      const f = {
         nome: { stringValue: String(prod.nome || '') },
         sku: { stringValue: String(prod.sku || '') },
         codInterno: { stringValue: String(prod.codInterno || '') },
@@ -2328,6 +2493,27 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         precoML: { doubleValue: Number(precos.ml) || 0 },
         dataCadastro: { stringValue: prod.dataCadastro || new Date().toISOString() }
       };
+
+      if (prod.precoConcTT !== undefined && prod.precoConcTT !== null && prod.precoConcTT !== '') {
+        f.precoConcTT = { doubleValue: Number(prod.precoConcTT) || 0 };
+      }
+      if (prod.precoPratTT !== undefined && prod.precoPratTT !== null && prod.precoPratTT !== '') {
+        f.precoPratTT = { doubleValue: Number(prod.precoPratTT) || 0 };
+      }
+      if (prod.precoConcSH !== undefined && prod.precoConcSH !== null && prod.precoConcSH !== '') {
+        f.precoConcSH = { doubleValue: Number(prod.precoConcSH) || 0 };
+      }
+      if (prod.precoPratSH !== undefined && prod.precoPratSH !== null && prod.precoPratSH !== '') {
+        f.precoPratSH = { doubleValue: Number(prod.precoPratSH) || 0 };
+      }
+      if (prod.precoConcML !== undefined && prod.precoConcML !== null && prod.precoConcML !== '') {
+        f.precoConcML = { doubleValue: Number(prod.precoConcML) || 0 };
+      }
+      if (prod.precoPratML !== undefined && prod.precoPratML !== null && prod.precoPratML !== '') {
+        f.precoPratML = { doubleValue: Number(prod.precoPratML) || 0 };
+      }
+
+      return f;
     }
 
     function updateDiagStatus(status, pillText, messageText) {
@@ -2559,6 +2745,29 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       const mlComissaoPct = ((mlTipo === 'premium' ? mlCat.premium : mlCat.classico) || 0) / 100;
       const mlFaixaPeso = parseInt(mlFaixaEl ? mlFaixaEl.value : 300, 10) || 300;
 
+      // Campos de comparação de preços (opcionais)
+      const parseOptionalPrice = (id) => {
+        const el = document.getElementById(id);
+        if (!el || el.value.trim() === '') return null;
+        const val = parseFloat(el.value);
+        return isNaN(val) ? null : val;
+      };
+
+      const comp = {
+        tt: {
+          conc: parseOptionalPrice('prod-conc-tt'),
+          prat: parseOptionalPrice('prod-prat-tt')
+        },
+        sh: {
+          conc: parseOptionalPrice('prod-conc-sh'),
+          prat: parseOptionalPrice('prod-prat-sh')
+        },
+        ml: {
+          conc: parseOptionalPrice('prod-conc-ml'),
+          prat: parseOptionalPrice('prod-prat-ml')
+        }
+      };
+
       return {
         custo,
         etiqueta,
@@ -2571,7 +2780,8 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         mlTipo,
         mlCat,
         mlComissaoPct,
-        mlFaixaPeso
+        mlFaixaPeso,
+        comp
       };
     }
 
@@ -2776,6 +2986,103 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       return triggerRecalc();
     }
 
+    /* RENDERIZADOR DE LINHAS DE COMPARAÇÃO INTELIGENTE */
+    function renderComparisonLines(containerId, precoSugerido, concVal, pratVal) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const hasConc = concVal !== null && concVal !== undefined && !isNaN(concVal) && concVal > 0;
+      const hasPrat = pratVal !== null && pratVal !== undefined && !isNaN(pratVal) && pratVal > 0;
+
+      if (!hasConc && !hasPrat) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+        return;
+      }
+
+      container.style.display = 'flex';
+      let html = '';
+
+      // 1. Linha Concorrente
+      if (hasConc) {
+        const diffConc = concVal > 0 ? (precoSugerido - concVal) / concVal : 0;
+        let badgeClass = 'amber';
+        let badgeText = '';
+
+        if (precoSugerido < concVal * 0.95) {
+          // Preço sugerido é inferior em mais de 5%
+          badgeClass = 'green';
+          badgeText = '✅ Você está abaixo do concorrente';
+        } else if (precoSugerido > concVal * 1.05) {
+          // Preço sugerido é superior em mais de 5%
+          badgeClass = 'red';
+          badgeText = '⚠️ Acima do concorrente';
+        } else {
+          // Diferença <= 5% (emparelhado)
+          badgeClass = 'amber';
+          badgeText = '⚖️ Emparelhado com o concorrente';
+        }
+
+        html += `
+          <div class="comp-item-row">
+            <div class="comp-item-header">
+              <span>🎯 Preço concorrente:</span>
+              <strong style="color: #ffffff;">${fmtBRL(concVal)}</strong>
+            </div>
+            <div>
+              <span class="comp-badge ${badgeClass}">${badgeText}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      // 2. Linha Preço Praticado
+      if (hasPrat) {
+        let badgeClass = 'green';
+        let badgeText = '';
+        const sug = precoSugerido;
+        const prat = pratVal;
+
+        if (prat >= sug) {
+          // Preço praticado maior ou igual ao sugerido
+          if (sug > 0 && prat > sug * 1.15) {
+            badgeClass = 'green';
+            badgeText = '💰 Preço acima do sugerido — ótima margem';
+          } else if (sug > 0 && (prat - sug) / sug <= 0.05) {
+            badgeClass = 'green';
+            badgeText = '✅ Manter preço atual';
+          } else {
+            badgeClass = 'green';
+            badgeText = '✅ Pode manter (lucro acima do mínimo)';
+          }
+        } else {
+          // Preço praticado menor que sugerido
+          const diffPct = sug > 0 ? (sug - prat) / sug : 0;
+          if (diffPct <= 0.05) {
+            badgeClass = 'amber';
+            badgeText = `📊 Considere ajustar para ${fmtBRL(sug)}`;
+          } else {
+            badgeClass = 'red';
+            badgeText = `📈 Precisa AUMENTAR para ${fmtBRL(sug)}`;
+          }
+        }
+
+        html += `
+          <div class="comp-item-row">
+            <div class="comp-item-header">
+              <span>📌 Preço praticado:</span>
+              <strong style="color: #ffffff;">${fmtBRL(prat)}</strong>
+            </div>
+            <div>
+              <span class="comp-badge ${badgeClass}">${badgeText}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
     function triggerRecalc() {
       calcularCustoFixo();
       const data = getFormInputs();
@@ -2802,6 +3109,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       setTxt('tt-total-taxas', fmtBRL(tt.totalTaxas));
       setTxt('tt-lucro', fmtBRL(tt.lucro));
       setTxt('tt-margem-real', fmtPct(tt.margemReal));
+      renderComparisonLines('tt-comp-box', tt.preco, data.comp.tt.conc, data.comp.tt.prat);
 
       // Shopee (NÃO aplica comissão Tray)
       const sh = calculateShopee(cfTotal, data.impostoPct, data.repPct, data.margemPct);
@@ -2815,6 +3123,7 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       setTxt('sh-total-taxas', fmtBRL(sh.totalTaxas));
       setTxt('sh-lucro', fmtBRL(sh.lucro));
       setTxt('sh-margem-real', fmtPct(sh.margemReal));
+      renderComparisonLines('sh-comp-box', sh.preco, data.comp.sh.conc, data.comp.sh.prat);
 
       // Mercado Livre (NÃO aplica comissão Tray)
       const ml = calculateML(cfTotal, data.impostoPct, data.repPct, data.margemPct, data.mlComissaoPct, data.mlFaixaPeso);
@@ -2829,8 +3138,9 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       setTxt('ml-total-taxas', fmtBRL(ml.totalTaxas));
       setTxt('ml-lucro', fmtBRL(ml.lucro));
       setTxt('ml-margem-real', fmtPct(ml.margemReal));
+      renderComparisonLines('ml-comp-box', ml.preco, data.comp.ml.conc, data.comp.ml.prat);
 
-      return { tt, sh, ml, cfTotal };
+      return { tt, sh, ml, cfTotal, comp: data.comp };
     }
 
     /* CRUD DE PRODUTOS (FIRESTORE REST + FALLBACK LOCAL) */
@@ -2876,6 +3186,20 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         const existingProd = editingId ? produtos.find(p => p.id === editingId) : null;
         const dataCadastro = existingProd?.dataCadastro || new Date().toISOString();
 
+        const parseOptNum = (id) => {
+          const el = document.getElementById(id);
+          if (!el || el.value.trim() === '') return null;
+          const v = parseFloat(el.value);
+          return isNaN(v) ? null : v;
+        };
+
+        const precoConcTT = parseOptNum('prod-conc-tt');
+        const precoPratTT = parseOptNum('prod-prat-tt');
+        const precoConcSH = parseOptNum('prod-conc-sh');
+        const precoPratSH = parseOptNum('prod-prat-sh');
+        const precoConcML = parseOptNum('prod-conc-ml');
+        const precoPratML = parseOptNum('prod-prat-ml');
+
         const productPayload = {
           id: editingId || ('prod-' + Date.now()),
           docName: editingDocName || existingProd?.docName || '',
@@ -2895,11 +3219,22 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           mlTipoAnuncio: document.getElementById('ml-tipo-anuncio')?.value || 'premium',
           mlCategoriaId: document.getElementById('ml-categoria')?.value || 'cat-1',
           mlFaixaPeso: parseInt(document.getElementById('ml-faixa-peso')?.value, 10) || 300,
+          precoConcTT,
+          precoPratTT,
+          precoConcSH,
+          precoPratSH,
+          precoConcML,
+          precoPratML,
           dataCadastro,
           precos: {
             tt: results.tt.preco,
             sh: results.sh.preco,
             ml: results.ml.preco
+          },
+          comparativos: {
+            tt: { conc: precoConcTT, prat: precoPratTT },
+            sh: { conc: precoConcSH, prat: precoPratSH },
+            ml: { conc: precoConcML, prat: precoPratML }
           }
         };
 
@@ -3022,6 +3357,18 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       document.getElementById('ml-categoria').value = prod.mlCategoriaId;
       document.getElementById('ml-faixa-peso').value = prod.mlFaixaPeso || 300;
 
+      // Carregar os 6 campos comparativos de volta no formulário
+      const setInputOrEmpty = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = (val !== null && val !== undefined && val !== '') ? val : '';
+      };
+      setInputOrEmpty('prod-conc-tt', prod.precoConcTT ?? prod.comparativos?.tt?.conc);
+      setInputOrEmpty('prod-prat-tt', prod.precoPratTT ?? prod.comparativos?.tt?.prat);
+      setInputOrEmpty('prod-conc-sh', prod.precoConcSH ?? prod.comparativos?.sh?.conc);
+      setInputOrEmpty('prod-prat-sh', prod.precoPratSH ?? prod.comparativos?.sh?.prat);
+      setInputOrEmpty('prod-conc-ml', prod.precoConcML ?? prod.comparativos?.ml?.conc);
+      setInputOrEmpty('prod-prat-ml', prod.precoPratML ?? prod.comparativos?.ml?.prat);
+
       triggerRecalc();
       switchTab('cadastro');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3044,17 +3391,23 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
       document.getElementById('prod-nome').value = '';
       document.getElementById('prod-sku').value = '';
       document.getElementById('prod-cod-interno').value = '';
-      document.getElementById('prod-custo').value = '120.00';
-      document.getElementById('prod-etiqueta').value = '0.50';
+      document.getElementById('prod-custo').value = '';
+      document.getElementById('prod-etiqueta').value = '0.03';
       if (embalagens.length > 0) document.getElementById('prod-embalagem').value = embalagens[0].id;
       document.getElementById('prod-embalagem-qtd').value = '1';
-      document.getElementById('prod-imposto').value = '6.0';
-      document.getElementById('prod-comissao-rep').value = '3.0';
+      document.getElementById('prod-imposto').value = '8.0';
+      document.getElementById('prod-comissao-rep').value = '1.0';
       document.getElementById('prod-comissao-tray').value = '1.0';
-      document.getElementById('prod-margem').value = '20.0';
+      document.getElementById('prod-margem').value = '15.0';
       document.getElementById('ml-tipo-anuncio').value = 'premium';
       if (categorias.length > 0) document.getElementById('ml-categoria').value = categorias[0].id;
       document.getElementById('ml-faixa-peso').value = '300';
+
+      // Limpar campos de comparação
+      ['prod-conc-tt', 'prod-prat-tt', 'prod-conc-sh', 'prod-prat-sh', 'prod-conc-ml', 'prod-prat-ml'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
 
       triggerRecalc();
     }
@@ -3183,6 +3536,26 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         const shPrice = prod.precos ? prod.precos.sh : 0;
         const mlPrice = prod.precos ? prod.precos.ml : 0;
 
+        // Comparativos para exibição na tabela
+        const cTT = prod.precoConcTT ?? prod.comparativos?.tt?.conc;
+        const pTT = prod.precoPratTT ?? prod.comparativos?.tt?.prat;
+        const cSH = prod.precoConcSH ?? prod.comparativos?.sh?.conc;
+        const pSH = prod.precoPratSH ?? prod.comparativos?.sh?.prat;
+        const cML = prod.precoConcML ?? prod.comparativos?.ml?.conc;
+        const pML = prod.precoPratML ?? prod.comparativos?.ml?.prat;
+
+        const formatCompSub = (conc, prat) => {
+          const parts = [];
+          if (conc !== null && conc !== undefined && conc !== '' && !isNaN(conc)) {
+            parts.push(`<span style="color:#94a3b8;" title="Preço concorrente">Conc: <strong style="color:#cbd5e1;">${fmtBRL(conc)}</strong></span>`);
+          }
+          if (prat !== null && prat !== undefined && prat !== '' && !isNaN(prat)) {
+            parts.push(`<span style="color:#94a3b8;" title="Preço praticado">Prat: <strong style="color:#cbd5e1;">${fmtBRL(prat)}</strong></span>`);
+          }
+          if (parts.length === 0) return '';
+          return `<div style="font-size: 0.68rem; margin-top: 2px; line-height: 1.25; display: flex; flex-direction: column; align-items: flex-end; gap: 1px;">${parts.join('')}</div>`;
+        };
+
         const isLocalOnly = Boolean(prod.isLocal || !prod.docName);
         const originBadge = isLocalOnly
           ? '<span class="shell-badge" style="font-size: 0.68rem; background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.45); margin-left: 6px; font-weight: 700;" title="Salvo apenas no armazenamento local deste navegador">Local</span>'
@@ -3202,9 +3575,18 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           </td>
           <td style="color: #94a3b8;">${escapeHTML(prod.codInterno || '—')}</td>
           <td class="num-cell" style="font-weight: 600; color: #cbd5e1;">${fmtBRL(prod.custo)}</td>
-          <td class="num-cell" style="font-weight: 800; color: #ffffff;">${fmtBRL(ttPrice)}</td>
-          <td class="num-cell" style="font-weight: 800; color: #fb923c;">${fmtBRL(shPrice)}</td>
-          <td class="num-cell" style="font-weight: 800; color: #facc15;">${fmtBRL(mlPrice)}</td>
+          <td class="num-cell" style="font-weight: 800; color: #ffffff;">
+            ${fmtBRL(ttPrice)}
+            ${formatCompSub(cTT, pTT)}
+          </td>
+          <td class="num-cell" style="font-weight: 800; color: #fb923c;">
+            ${fmtBRL(shPrice)}
+            ${formatCompSub(cSH, pSH)}
+          </td>
+          <td class="num-cell" style="font-weight: 800; color: #facc15;">
+            ${fmtBRL(mlPrice)}
+            ${formatCompSub(cML, pML)}
+          </td>
           <td style="text-align: center; white-space: nowrap;">
             <button type="button" class="btn btn-outline" style="padding: 0.25rem 0.55rem; font-size: 0.75rem; margin-right: 4px;" onclick="editProduct('${prod.id}')" title="Editar produto">
               ✏️
@@ -3405,19 +3787,19 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
 
     /* IMPORTAÇÃO & DOWNLOAD CSV COM TRATAMENTO DE VÍRGULA DECIMAL */
     function downloadSampleCSV() {
-      // CSV com suporte brasileiro (delimitador ponto-e-vírgula e vírgula decimal)
-      const headers = "SKU;Nome;CodInterno;Custo;Etiqueta;Imposto;ComissaoRep;Margem;MLTipo;MLFaixaPeso";
+      // CSV com suporte brasileiro (delimitador ponto-e-vírgula e vírgula decimal) incluindo colunas de comparação opcionais
+      const headers = "SKU;Nome;CodInterno;Custo;Etiqueta;Imposto;ComissaoRep;Margem;MLTipo;MLFaixaPeso;preco_concorrente_tt;preco_praticado_tt;preco_concorrente_shopee;preco_praticado_shopee;preco_concorrente_ml;preco_praticado_ml";
       const rows = [
-        "EWM-ALIC-01;Alicate Universal Isolado 8 Polegadas;FER-301;18,50;0,35;6,0;3,0;25,0;premium;500",
-        "EWM-LUVA-NIT;Caixa 100 Luvas Nitrílicas Tam G;EPI-202;32,90;0,40;6,0;3,0;22,0;classico;500",
-        "EWM-FITA-300;Fita Adesiva Empacotamento 48mmx100m;EMB-008;4,20;0,20;6,0;2,5;30,0;premium;300"
+        "AQ-ALIC-01;Alicate Universal Isolado 8 Pol;FER-301;18,50;0,35;6,0;3,0;25,0;premium;500;34,90;32,00;36,50;35,00;42,00;39,90",
+        "AQ-LUVA-NIT;Caixa 100 Luvas Nitrílicas Tam G;EPI-202;32,90;0,40;6,0;3,0;22,0;classico;500;55,00;;58,90;57,00;64,00;62,00",
+        "AQ-FITA-300;Fita Adesiva 48mmx100m;EMB-008;4,20;0,20;6,0;2,5;30,0;premium;300;;;;;; "
       ];
       const csvContent = "\uFEFF" + headers + "\n" + rows.join("\n");
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = "exemplo_precificacao_ewm.csv";
+      a.download = "exemplo_precificacao_armaq.csv";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -3474,6 +3856,20 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
         const mlTipo = (cols[8] && cols[8].toLowerCase().includes('class')) ? 'classico' : 'premium';
         const mlFaixaPeso = parseInt(cols[9], 10) || 300;
 
+        // Colunas opcionais de comparação (índices 10 a 15)
+        const parseOptionalCol = (val) => {
+          if (!val || val.trim() === '') return null;
+          const parsed = parseBrFloat(val);
+          return isNaN(parsed) || parsed <= 0 ? null : parsed;
+        };
+
+        const precoConcTT = cols.length > 10 ? parseOptionalCol(cols[10]) : null;
+        const precoPratTT = cols.length > 11 ? parseOptionalCol(cols[11]) : null;
+        const precoConcSH = cols.length > 12 ? parseOptionalCol(cols[12]) : null;
+        const precoPratSH = cols.length > 13 ? parseOptionalCol(cols[13]) : null;
+        const precoConcML = cols.length > 14 ? parseOptionalCol(cols[14]) : null;
+        const precoPratML = cols.length > 15 ? parseOptionalCol(cols[15]) : null;
+
         const defaultEmb = embalagens[0] || { id: 'emb-1', valor: 1.20 };
         const defaultCat = categorias[0] || { id: 'cat-1', classico: 11.5, premium: 16.5 };
         const cfTotal = custo + etiqueta + (defaultEmb.valor || 0);
@@ -3500,11 +3896,22 @@ table.shell-table tbody tr:hover { background: color-mix(in srgb, var(--accent) 
           mlTipoAnuncio: mlTipo,
           mlCategoriaId: defaultCat.id,
           mlFaixaPeso,
+          precoConcTT,
+          precoPratTT,
+          precoConcSH,
+          precoPratSH,
+          precoConcML,
+          precoPratML,
           dataCadastro: new Date().toISOString(),
           precos: {
             tt: ttCalc.preco,
             sh: shCalc.preco,
             ml: mlCalc.preco
+          },
+          comparativos: {
+            tt: { conc: precoConcTT, prat: precoPratTT },
+            sh: { conc: precoConcSH, prat: precoPratSH },
+            ml: { conc: precoConcML, prat: precoPratML }
           }
         };
 
